@@ -1,0 +1,691 @@
+---
+title: "Problem Set 2"
+format: 
+  html:
+    embed-resources: true
+    toc: true
+    toc-location: right
+    toc-title: "Content"
+editor: visual
+---
+
+## About this file
+
+This is the Yicun Duan's (umich id: 62178151) report of STAT 506's Problem Set 2. Here is the link to my [GitHub repository](https://github.com/YicunDuanUMich/stats506_hw02).
+
+## Problem 1
+
+### a
+
+**Version 1**
+
+```{r}
+#| code-fold: show
+#| code-summary: "The code for Problem 1-a Version 1"
+#| warning: true
+#| error: true
+
+rm(list = ls())
+
+
+#' Simulate the dice game using loop.
+#'
+#' @param number_of_dice is the number of dice to roll.
+#'
+#' @return the player's total winnings or loses in integer.
+play_dice_loop <- function(number_of_dice) {
+  # Check whether the input is smaller than or equal to 0.
+  if (number_of_dice <= 0) {
+    stop("The input number should be large than 0.")
+  }
+  
+  # Check whether the input is an integer.
+  if(!(all.equal(number_of_dice, round(number_of_dice)) == TRUE)) {
+    stop("The number of dice should be an integer.")
+  }
+  
+  # Randomly roll `number_of_dice` dices.
+  roll_results <- sample(1:6, number_of_dice, replace = TRUE)
+  
+  # The variable storing the final result.
+  total_result <- 0
+  # Use a loop to calculate result for each roll.
+  for (i in seq_along(roll_results)) {
+    roll_result <- roll_results[i]
+    # If the roll is of 1, 3 or 5, the player gets no money.
+    if (roll_result == 1 ||
+        roll_result == 3 ||
+        roll_result == 5) {
+      # Since each roll costs $2, actually the players will lose $2.
+      total_result <- total_result - 2
+      next
+    }
+    
+    # If the roll is of 2, 4 or 6, the player wins the amount on the roll.
+    total_result <- total_result + roll_result
+    # It costs $2 to play, so we deduct $2 from the `total_result`.
+    total_result <- total_result - 2
+  }
+  
+  return(total_result)
+}
+
+
+```
+
+**Version 2**
+
+```{r}
+#| code-fold: show
+#| code-summary: "The code for Problem 1-a Version 2"
+#| warning: true
+#| error: true
+
+#' Simulate the dice game using build-in R vectorized functions.
+#'
+#' @param number_of_dice is the number of dice to roll.
+#' @param return_all is a boolean variable controlling whether to return the results of each roll (this will be used for Monte Carlo simulation).
+#'
+#' @return the player's total winnings or loses in integer.
+play_dice_vectorized <- function(number_of_dice, return_all = FALSE) {
+  # Check whether the input is smaller than or equal to 0.
+  if (number_of_dice <= 0) {
+    stop("The input number should be large than 0.")
+  }
+  
+  # Check whether the input is an integer.
+  if(!(all.equal(number_of_dice, round(number_of_dice)) == TRUE)) {
+    stop("The number of dice should be an integer.")
+  }
+  
+  # Randomly roll `number_of_dice` dices.
+  roll_results <- sample(1:6, number_of_dice, replace = TRUE)
+  
+  # Find the rolls that player loses.
+  lose_rolls <- (roll_results == 1) | (roll_results == 3) | (roll_results == 5)
+  
+  # When losing, player get no money. Realize this through vectorization.
+  roll_results <- roll_results * (!lose_rolls)
+  
+  # Each roll costs $2. Realize this through vectorization.
+  roll_results <- roll_results - 2
+  
+  # Sum it up to get the final result.
+  # When `return_all` is TRUE, it will also return the results of each roll.
+  if (return_all) {
+    return(list(sum(roll_results), roll_results))
+  } else {
+    return(sum(roll_results))
+  }
+  
+}
+```
+
+**Version 3**
+
+```{r}
+#| code-fold: show
+#| code-summary: "The code for Problem 1-a Version 3"
+#| warning: true
+#| error: true
+
+#' Simulate the dice game using `table()`.
+#'
+#' @param number_of_dice is the number of dice to roll.
+#'
+#' @return the player's total winnings or loses in integer.
+play_dice_table <- function(number_of_dice) {
+  # Check whether the input is smaller than or equal to 0.
+  if (number_of_dice <= 0) {
+    stop("The input number should be large than 0.")
+  }
+  
+  # Check whether the input is an integer.
+  if(!(all.equal(number_of_dice, round(number_of_dice)) == TRUE)) {
+    stop("The number of dice should be an integer.")
+  }
+  
+  # Randomly roll `number_of_dice` dices.
+  roll_results <- sample(1:6, number_of_dice, replace = TRUE)
+  
+  # Treat `roll_results` as factor, so that `table()` can count the missed number.
+  roll_results_factor <- factor(roll_results, levels = 1:6)
+  
+  # Get the contingency table of `roll_results_factor`.
+  roll_results_table <- table(roll_results_factor)
+  
+  # On a roll of 2, 4, or 6, player wins the amount on the roll minus $2.
+  # On a roll of 1, 3, or 5, player loses $2.
+  roll_results_table <- roll_results_table * c(-2, 0, -2, 2, -2, 4)
+  
+  # Sum it up to get the final result.
+  return(sum(roll_results_table))
+}
+```
+
+**Version 4**
+
+```{r}
+#| code-fold: show
+#| code-summary: "The code for Problem 1-a Version 4"
+#| warning: true
+#| error: true
+
+#' Simulate the dice game using `apply` function.
+#'
+#' @param number_of_dice is the number of dice to roll.
+#'
+#' @return the player's total winnings or loses in integer.
+play_dice_apply <- function(number_of_dice) {
+  # Check whether the input is smaller than or equal to 0.
+  if (number_of_dice <= 0) {
+    stop("The input number should be large than 0.")
+  }
+  
+  # Check whether the input is an integer.
+  if(!(all.equal(number_of_dice, round(number_of_dice)) == TRUE)) {
+    stop("The number of dice should be an integer.")
+  }
+  
+  # Randomly roll `number_of_dice` dices.
+  roll_results <- sample(1:6, number_of_dice, replace = TRUE)
+  
+  # Calculate win/lose money for each roll
+  roll_results <- vapply(roll_results,
+                         function(x) {
+                           if (x == 1 ||
+                               x == 3 ||
+                               x == 5) {
+                                return(-2)
+                           }
+                           return(x - 2)
+                         }, 1)
+  
+  return(sum(roll_results))
+}
+```
+
+### b
+
+We test our functions with inputs 3 and 3000:
+
+```{r}
+#| code-fold: show
+#| code-summary: "The code for Problem 1-b"
+#| warning: true
+#| error: true
+
+# Test version 1
+play_dice_loop(3)
+play_dice_loop(3000)
+
+# Test version 2
+play_dice_vectorized(3)
+play_dice_vectorized(3000)
+
+# Test version 3
+play_dice_table(3)
+play_dice_table(3000)
+
+# Test version 4
+play_dice_apply(3)
+play_dice_apply(3000)
+
+```
+
+### c
+
+In this section, we test whether the outputs of our functions are same:
+
+```{r}
+#| code-fold: show
+#| code-summary: "The code for Problem 1-c"
+#| warning: true
+#| error: true
+
+# Test version 1
+set.seed(1)
+loop_3_result <- play_dice_loop(3)
+loop_3000_result <- play_dice_loop(3000)
+
+# Test version 2
+set.seed(1)
+vectorized_3_result <- play_dice_vectorized(3)
+vectorized_3000_result <- play_dice_vectorized(3000)
+
+# Test version 3
+set.seed(1)
+table_3_result <- play_dice_table(3)
+table_3000_result <- play_dice_table(3000)
+
+# Test version 4
+set.seed(1)
+apply_3_result <- play_dice_apply(3)
+apply_3000_result <- play_dice_apply(3000)
+
+# Test whether they are equal
+print(all(c(loop_3_result, vectorized_3_result,
+            table_3_result, apply_3_result) 
+          == loop_3_result))
+
+print(all(c(loop_3000_result, vectorized_3000_result,
+            table_3000_result, apply_3000_result) 
+          == loop_3000_result))
+
+```
+
+### d
+
+```{r}
+#| code-fold: show
+#| code-summary: "The code for Problem 1-d"
+#| warning: true
+#| error: true
+
+library(microbenchmark)
+
+benchmark_100 <- microbenchmark(play_dice_loop(100),
+                                 play_dice_vectorized(100),
+                                 play_dice_table(100),
+                                 play_dice_apply(100))
+
+benchmark_10000 <- microbenchmark(play_dice_loop(10000),
+                                 play_dice_vectorized(10000),
+                                 play_dice_table(10000),
+                                 play_dice_apply(10000))
+benchmark_100
+benchmark_10000
+
+```
+
+When we play the game for 100 times, the mean time consumption of `play_dice_loop`, `play_dice_vectorized`, `play_dice_table` and `play_dice_apply` are `r summary(benchmark_100)$mean[1]`/`r summary(benchmark_100)$mean[2]`/`r summary(benchmark_100)$mean[3]`/`r summary(benchmark_100)$mean[4]` ms, respectively. We notice that loop function and vectorized function take similar time. This is because when the workload is relatively low, the vectorization's advantage over traditional loop is not outstanding. We also find that both loop function and vectorized function outperform table function and apply function. One possible explanation for this is that table function and apply function need extra time for initialization. The initialization time accounts for a significant part of time when the total time is small.
+
+In case of playing dices for 10000 times, `play_dice_loop`, `play_dice_vectorized`, `play_dice_table` and `play_dice_apply` take `r summary(benchmark_10000)$mean[1]`/`r summary(benchmark_10000)$mean[2]`/`r summary(benchmark_10000)$mean[3]`/`r summary(benchmark_10000)$mean[4]` ms in means to finish. The vectorized function and table function have relatively low time consumption, since they both use vectorization to solve the problem and are high-performance. The reason why vectorized function is slightly faster than table function is that the table function does extra calculation which is not necessary in this case. We actually don't need to know the exact counts to get the final result. We find that the loop function and apply function take considerable amount of time. This is because they try to do calculation in an element-by-element manner. Another noticeable thing is that, in our implementation, loop function is much faster than apply function. We owe this to the fact that at each step in apply's implicit loop, it needs to call our anonymous R function, and the repeated function calls consume a lot of time.
+
+### e
+
+```{r}
+#| code-fold: show
+#| code-summary: "The code for Problem 1-d"
+#| warning: true
+#| error: true
+
+n <- 100000
+
+# theta_hat = sum_{i=1}^{n} X_i / n
+results_list <- play_dice_vectorized(n, return_all = TRUE)
+theta_hat <- results_list[[1]] / n
+
+# sigma = standard deviation of X_i
+sigma <- sd(results_list[[2]])
+
+alpha <- 0.05
+
+confi_bound_low <- theta_hat - sigma / sqrt(n) * qt(1.0 - alpha / 2, df = n - 1)
+confi_bound_high <- theta_hat + sigma / sqrt(n) * qt(1.0 - alpha / 2, df = n - 1)
+
+cat("Lower confidence bound: ", 
+    round(confi_bound_low, 3),
+    "\nHigher confidence bound:", 
+    round(confi_bound_high, 3),
+    "\n(alpha=", alpha, ")")
+```
+
+As shown in our Monte Carlo simulation, when we roll the dice for 100000 times and set $\alpha$ to be 0.05, we can get the confidence interval (-0.02, 0.008) which covers 0. Therefore, we can conclude that this is a fair game.
+
+```{r}
+#| code-fold: show
+#| code-summary: "Clear environment"
+#| warning: true
+#| error: true
+
+
+rm(list = ls())
+```
+
+## Problem 2
+
+### a
+
+We load the data from file and rename the columns.
+
+```{r}
+#| code-fold: show
+#| code-summary: "The code for Problem 2-a"
+#| warning: true
+#| error: true
+
+
+cars_data <- read.table("./data/cars.csv", sep = ",", header = TRUE)
+names(cars_data) <- c("H", "L", "W", 
+                      "driveline", 
+                      "engine_type", "hybrid", "gears",
+                      "transmission", 
+                      "city_mpg", "fuel_type", "highway_mpg",
+                      "classification",
+                      "id", "make",
+                      "model_year", "year",
+                      "horsepower", "torque")
+```
+
+### b
+
+We only consider the cars whose fuel type is Gasoline.
+
+```{r}
+#| code-fold: show
+#| code-summary: "The code for Problem 2-b"
+#| warning: true
+#| error: true
+
+cars_data <- cars_data[cars_data$fuel_type == "Gasoline", ]
+```
+
+### c
+
+```{r}
+#| code-fold: show
+#| code-summary: "The code for Problem 2-c"
+#| warning: true
+#| error: true
+
+cars_data$year <- as.factor(cars_data$year)
+
+highway_mpg_horsepower_model <- lm(highway_mpg ~ horsepower + 
+                                     torque + H + W + L + year,
+                                   data = cars_data)
+summary(highway_mpg_horsepower_model)
+```
+
+From the summary of our regression model, we find that the estimated coefficient of `horsepower` is 0.0163556, its deviation is 0.0022772, t value is 7.182 and p value is 7.96e-13. This demonstrates that there is a relationship between `horsepower` and `highway_mpg`, since the small p value ($< 0.05$) can help us reject the null hypothesis. The positive slope of `horsepower` also shows that, when the `horsepower` increases by 1 unit, the `highway_mpg` will also grow by about 0.0163556 unit. The summary also showcases other important statistical value. The $R^2$ value (0.4192) indicates that about $41.92\%$ variability of `highway_mpg` can be explained by the predictors (like `horsepower`, `torque` and `L`). The p value of F test shows that the predictors play an important role in building up this regression model.
+
+### d
+
+```{r}
+#| code-fold: show
+#| code-summary: "The code for Problem 2-c"
+#| warning: true
+#| error: true
+
+library(emmeans)
+
+highway_mpg_horsepower_with_torque_model <- lm(highway_mpg ~ horsepower * torque +
+                                                              H + W + L + year, data = cars_data)
+summary(highway_mpg_horsepower_with_torque_model)
+
+summary(cars_data$horsepower)
+summary(cars_data$torque)
+
+emmip(highway_mpg_horsepower_with_torque_model, torque ~ horsepower, at = list(horsepower = 185:317, torque = c(177, 257, 332), year = "2011"))
+```
+
+As shown in the above figure, we draw the regression lines of `highway_mpg` v.s. `horsepower` while controlling the `torque` to be 177, 257 and 332. These three torque values are the 1Q, Median and 3Q of `torque`. The values of `horsepower` are also selected from interval (1Q, 3Q).
+
+### e
+
+We first extract the design matrix from the model and then calculate the $\hat{\beta}$. The testing shows that our manually calculated $\hat{\beta}$ is the same as that of `lm`.
+
+```{r}
+#| code-fold: show
+#| code-summary: "The code for Problem 2-c"
+#| warning: true
+#| error: true
+
+design_matrix <- model.matrix(highway_mpg_horsepower_with_torque_model)
+y <- model.frame(highway_mpg_horsepower_with_torque_model)[, 1]
+
+xt_x <- t(design_matrix) %*% design_matrix
+xt_x_i <- solve(xt_x)
+beta <- xt_x_i %*% t(design_matrix) %*% y
+
+summary_highway_mpg_horsepower_with_torque_model <- summary(highway_mpg_horsepower_with_torque_model)
+
+for (i in seq_along(beta)) {
+  print(all.equal(beta[i], summary_highway_mpg_horsepower_with_torque_model$coefficients[i, 1]) == TRUE)
+}
+
+rm(list = ls())
+```
+
+## Problem 3
+
+We import data from file and rename the columns.
+
+### a
+
+``` stata
+
+. // Import the csv file.
+. import delimited "K:\data\cars.csv"
+(encoding automatically selected: ISO-8859-1)
+(18 vars, 5,076 obs)
+
+. // Open the browser.
+. browse *
+
+. 
+. // Rename the columns.
+. rename dimensionsheight H
+
+. rename dimensionslength L
+
+. rename dimensionswidth W
+
+. rename engineinformationdriveline driveline
+
+. rename engineinformationenginetype engine_type
+
+. rename engineinformationhybrid hybrid
+
+. rename engineinformationnumberofforward gears
+
+. rename engineinformationtransmission transmission
+
+. rename fuelinformationcitympg city_mpg
+
+. rename fuelinformationfueltype fuel_type
+
+. rename fuelinformationhighwaympg highway_mpg
+
+. rename identificationclassification classification
+
+. rename identificationid id
+
+. rename identificationmake make
+
+. rename identificationmodelyear model_year
+
+. rename identificationyear year
+
+. rename engineinformationenginestatistic horsepower
+
+. rename v18 torque
+```
+
+### b
+
+We drop the data whose fuel type is not Gasoline.
+
+``` stata
+. // Restrict the data to cars whose Fuel Type is "Gasoline".
+. keep if fuel_type == "Gasoline"
+(485 observations deleted)
+```
+
+### c
+
+We fit a model to find the relationship between `highway_mpg` and `horsepower`.
+
+``` stata
+
+. // Fit a linear regression model predicting MPG on the highway with horsepower as predictor. 
+. regress highway_mpg c.horsepower c.torque c.H c.L c.W i.year 
+
+      Source |       SS           df       MS      Number of obs   =     4,591
+-------------+----------------------------------   F(8, 4582)      =    413.35
+       Model |  70043.6695         8  8755.45869   Prob > F        =    0.0000
+    Residual |   97055.298     4,582  21.1818634   R-squared       =    0.4192
+-------------+----------------------------------   Adj R-squared   =    0.4182
+       Total |  167098.968     4,590  36.4050038   Root MSE        =    4.6024
+
+------------------------------------------------------------------------------
+ highway_mpg | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+  horsepower |   .0163556   .0022772     7.18   0.000     .0118913      .02082
+      torque |  -.0507425    .002203   -23.03   0.000    -.0550614   -.0464236
+           H |   .0099079   .0011267     8.79   0.000      .007699    .0121168
+           L |    .001729   .0008836     1.96   0.050    -3.36e-06    .0034613
+           W |  -.0003343   .0009045    -0.37   0.712    -.0021075    .0014388
+             |
+        year |
+       2010  |  -.4539681   .6768246    -0.67   0.502     -1.78087    .8729342
+       2011  |   .1711016   .6757043     0.25   0.800    -1.153604    1.495808
+       2012  |   1.302928   .6810076     1.91   0.056    -.0321751    2.638031
+             |
+       _cons |   32.29266   .7225982    44.69   0.000     30.87602     33.7093
+------------------------------------------------------------------------------
+
+. 
+```
+
+As displayed in Stata's output, the estimated coefficient of `horsepower` is 0.0163556, which indicates that the one unit increment on `horsepower` will bring about 0.0163556 unit increment on `highway_mpg`. The p value of `horsepower` (0.000) demonstrates that the estimated coefficient of `horsepower` is significantly different from 0. Other important values like $R^2$ show that about $41.92\%$ variability of `highway_mpg` can be explained by the predictors. F test with very low p value gives us the evidence that the predictors (`horsepower`, `torque`, and etc.) can't be dropped. Besides these common-seen statistical values, Stata reports the analysis-of-variance (ANOVA) table which includes sum of squares (`SS`), degrees of freedom (`df`) and mean squares (`MS`). The root mean squared error for the residuals can be found in `Root MSE`, next to the ANOVA table.
+
+### d
+
+``` stata
+
+. // Refit the model with torque added.
+. regress highway_mpg c.horsepower##c.torque c.H c.L c.W i.year
+
+      Source |       SS           df       MS      Number of obs   =     4,591
+-------------+----------------------------------   F(9, 4581)      =    480.07
+       Model |  81105.8715         9  9011.76351   Prob > F        =    0.0000
+    Residual |   85993.096     4,581  18.7716865   R-squared       =    0.4854
+-------------+----------------------------------   Adj R-squared   =    0.4844
+       Total |  167098.968     4,590  36.4050038   Root MSE        =    4.3326
+
+---------------------------------------------------------------------------------------
+          highway_mpg | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+----------------------+----------------------------------------------------------------
+           horsepower |  -.0166633   .0025388    -6.56   0.000    -.0216406    -.011686
+               torque |  -.0860593   .0025333   -33.97   0.000    -.0910257   -.0810928
+                      |
+c.horsepower#c.torque |   .0001124   4.63e-06    24.28   0.000     .0001033    .0001214
+                      |
+                    H |   .0065604   .0010696     6.13   0.000     .0044634    .0086573
+                    L |   .0017767   .0008318     2.14   0.033     .0001459    .0034075
+                    W |  -.0011694   .0008521    -1.37   0.170      -.00284    .0005011
+                      |
+                 year |
+                2010  |  -.5627858   .6371716    -0.88   0.377    -1.811949    .6863777
+                2011  |   .0725356   .6361142     0.11   0.909    -1.174555    1.319626
+                2012  |   1.197033   .6411085     1.87   0.062    -.0598488    2.453915
+                      |
+                _cons |   42.18795   .7930274    53.20   0.000     40.63323    43.74266
+---------------------------------------------------------------------------------------
+
+. 
+```
+
+Like what we did in Problem 2-d, we draw the interaction plot using Stata.
+
+``` stata
+. // Print the interaction plot
+. codebook horsepower
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+horsepower                                                                                                        Engine Information.Engine Statistics.Horsepower
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+                  Type: Numeric (int)
+
+                 Range: [100,638]                     Units: 1
+         Unique values: 213                       Missing .: 0/4,591
+
+                  Mean: 267.466
+             Std. dev.:  97.432
+
+           Percentiles:     10%       25%       50%       75%       90%
+                            156       185       263       317       400
+
+. codebook torque
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+torque                                                                                                                Engine Information.Engine Statistics.Torque
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+                  Type: Numeric (int)
+
+                 Range: [98,774]                      Units: 1
+         Unique values: 214                       Missing .: 0/4,591
+
+                  Mean:  267.22
+             Std. dev.: 101.327
+
+           Percentiles:     10%       25%       50%       75%       90%
+                            148       177       257       332       410
+
+. 
+
+. margins, at(horsepower = (185/317) torque = (177 257 332) year = (2011))
+. marginsplot
+. graph export "K:\horsepower_torque_graph.png", as(png) name("Graph") replace
+file K:\horsepower_torque_graph.png saved as PNG format
+```
+
+![horsepower_torque_graph](./horsepower_torque_graph.png "Interaction Plot")
+
+### e
+
+We calculate the $\hat{\beta}$ using Stata and MATA:
+
+``` stata
+. // Put matrices into mata.
+. putmata highway_mpg horsepower torque H L W year, replace
+(7 vectors posted)
+
+. 
+. mata:
+------------------------------------------------- mata (type end to exit) ---------------------------------------------------------------------------------------
+: horsepower_torque = horsepower :* torque
+
+: year_2010 = year :== 2010
+
+: year_2011 = year :== 2011
+
+: year_2012 = year :== 2012
+
+: 
+: design_matrix = (J(4591, 1, 1), horsepower, torque, horsepower_torque, H, L, W, year_2010, year_2011, year_2012)
+
+: 
+: XT_X = design_matrix' * design_matrix
+
+: XT_X_i = luinv(XT_X)
+
+: beta = XT_X_i * design_matrix' * highway_mpg
+
+: 
+: beta
+                   1
+     +----------------+
+   1 |   42.18794787  |
+   2 |  -.0166633227  |
+   3 |  -.0860592704  |
+   4 |   .0001123567  |
+   5 |   .0065603903  |
+   6 |   .0017767232  |
+   7 |  -.0011694485  |
+   8 |   -.562785777  |
+   9 |   .0725356431  |
+  10 |   1.197032999  |
+     +----------------+
+
+: 
+: end
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+. 
+```
+
+As shown in the output, we get the same $\hat{\beta}$ as that of Stata.
