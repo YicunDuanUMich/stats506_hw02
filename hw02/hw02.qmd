@@ -84,10 +84,9 @@ play_dice_loop <- function(number_of_dice) {
 #' Simulate the dice game using build-in R vectorized functions.
 #'
 #' @param number_of_dice is the number of dice to roll.
-#' @param return_all is a boolean variable controlling whether to return the results of each roll (this will be used for Monte Carlo simulation).
 #'
 #' @return the player's total winnings or loses in integer.
-play_dice_vectorized <- function(number_of_dice, return_all = FALSE) {
+play_dice_vectorized <- function(number_of_dice) {
   # Check whether the input is smaller than or equal to 0.
   if (number_of_dice <= 0) {
     stop("The input number should be large than 0.")
@@ -111,13 +110,7 @@ play_dice_vectorized <- function(number_of_dice, return_all = FALSE) {
   roll_results <- roll_results - 2
   
   # Sum it up to get the final result.
-  # When `return_all` is TRUE, it will also return the results of each roll.
-  if (return_all) {
-    return(list(sum(roll_results), roll_results))
-  } else {
-    return(sum(roll_results))
-  }
-  
+  return(sum(roll_results))
 }
 ```
 
@@ -310,28 +303,37 @@ In case of playing dices for 10000 times, `play_dice_loop`, `play_dice_vectorize
 #| warning: true
 #| error: true
 
-n <- 100000
+n <- 1000
+per_roll_times <- 100
+
+simu_results <- vector("double", length = n)
+
+for (i in 1:n) {
+  simu_results[i] <- play_dice_vectorized(per_roll_times) / per_roll_times
+}
 
 # theta_hat = sum_{i=1}^{n} X_i / n
-results_list <- play_dice_vectorized(n, return_all = TRUE)
-theta_hat <- results_list[[1]] / n
+theta_hat <- sum(simu_results) / n
 
 # sigma = standard deviation of X_i
-sigma <- sd(results_list[[2]])
+sigma <- sd(simu_results)
 
 alpha <- 0.05
 
 confi_bound_low <- theta_hat - sigma / sqrt(n) * qt(1.0 - alpha / 2, df = n - 1)
 confi_bound_high <- theta_hat + sigma / sqrt(n) * qt(1.0 - alpha / 2, df = n - 1)
 
+confi_bound_low_round <- round(confi_bound_low, 3)
+confi_bound_high_round <- round(confi_bound_high, 3)
+
 cat("Lower confidence bound: ", 
-    round(confi_bound_low, 3),
+    confi_bound_low_round,
     "\nHigher confidence bound:", 
-    round(confi_bound_high, 3),
+    confi_bound_high_round,
     "\n(alpha=", alpha, ")")
 ```
 
-As shown in our Monte Carlo simulation, when we roll the dice for 100000 times and set $\alpha$ to be 0.05, we can get the confidence interval (-0.02, 0.008) which covers 0. Therefore, we can conclude that this is a fair game.
+As shown in our Monte Carlo simulation, when we roll the dice for $1000 \times 100$ times and set $\alpha$ to be 0.05, we can get the confidence interval (`r confi_bound_low_round`, `r confi_bound_high_round`) which covers 0. Therefore, we can conclude that this is a fair game.
 
 ```{r}
 #| code-fold: show

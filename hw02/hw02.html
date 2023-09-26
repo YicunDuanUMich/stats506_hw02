@@ -3245,41 +3245,34 @@ return!"\t\n\x0B\f\r                　\u2028\u2029
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; Simulate the dice game using build-in R vectorized functions.</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39;</span></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; @param number_of_dice is the number of dice to roll.</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; @param return_all is a boolean variable controlling whether to return the results of each roll (this will be used for Monte Carlo simulation).</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39;</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; @return the player&#39;s total winnings or loses in integer.</span></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>play_dice_vectorized <span class="ot">&lt;-</span> <span class="cf">function</span>(number_of_dice, <span class="at">return_all =</span> <span class="cn">FALSE</span>) {</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Check whether the input is smaller than or equal to 0.</span></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (number_of_dice <span class="sc">&lt;=</span> <span class="dv">0</span>) {</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">stop</span>(<span class="st">&quot;The input number should be large than 0.&quot;</span>)</span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Check whether the input is an integer.</span></span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(<span class="sc">!</span>(<span class="fu">all.equal</span>(number_of_dice, <span class="fu">round</span>(number_of_dice)) <span class="sc">==</span> <span class="cn">TRUE</span>)) {</span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">stop</span>(<span class="st">&quot;The number of dice should be an integer.&quot;</span>)</span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Randomly roll `number_of_dice` dices.</span></span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>  roll_results <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>, number_of_dice, <span class="at">replace =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Find the rolls that player loses.</span></span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>  lose_rolls <span class="ot">&lt;-</span> (roll_results <span class="sc">==</span> <span class="dv">1</span>) <span class="sc">|</span> (roll_results <span class="sc">==</span> <span class="dv">3</span>) <span class="sc">|</span> (roll_results <span class="sc">==</span> <span class="dv">5</span>)</span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>  <span class="co"># When losing, player get no money. Realize this through vectorization.</span></span>
-<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>  roll_results <span class="ot">&lt;-</span> roll_results <span class="sc">*</span> (<span class="sc">!</span>lose_rolls)</span>
-<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Each roll costs $2. Realize this through vectorization.</span></span>
-<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>  roll_results <span class="ot">&lt;-</span> roll_results <span class="sc">-</span> <span class="dv">2</span></span>
-<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Sum it up to get the final result.</span></span>
-<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>  <span class="co"># When `return_all` is TRUE, it will also return the results of each roll.</span></span>
-<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (return_all) {</span>
-<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="fu">list</span>(<span class="fu">sum</span>(roll_results), roll_results))</span>
-<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
-<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="fu">sum</span>(roll_results))</span>
-<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; @return the player&#39;s total winnings or loses in integer.</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>play_dice_vectorized <span class="ot">&lt;-</span> <span class="cf">function</span>(number_of_dice) {</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Check whether the input is smaller than or equal to 0.</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (number_of_dice <span class="sc">&lt;=</span> <span class="dv">0</span>) {</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">stop</span>(<span class="st">&quot;The input number should be large than 0.&quot;</span>)</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Check whether the input is an integer.</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(<span class="sc">!</span>(<span class="fu">all.equal</span>(number_of_dice, <span class="fu">round</span>(number_of_dice)) <span class="sc">==</span> <span class="cn">TRUE</span>)) {</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">stop</span>(<span class="st">&quot;The number of dice should be an integer.&quot;</span>)</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Randomly roll `number_of_dice` dices.</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>  roll_results <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>, number_of_dice, <span class="at">replace =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Find the rolls that player loses.</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  lose_rolls <span class="ot">&lt;-</span> (roll_results <span class="sc">==</span> <span class="dv">1</span>) <span class="sc">|</span> (roll_results <span class="sc">==</span> <span class="dv">3</span>) <span class="sc">|</span> (roll_results <span class="sc">==</span> <span class="dv">5</span>)</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>  <span class="co"># When losing, player get no money. Realize this through vectorization.</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>  roll_results <span class="ot">&lt;-</span> roll_results <span class="sc">*</span> (<span class="sc">!</span>lose_rolls)</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Each roll costs $2. Realize this through vectorization.</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>  roll_results <span class="ot">&lt;-</span> roll_results <span class="sc">-</span> <span class="dv">2</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Sum it up to get the final result.</span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">sum</span>(roll_results))</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <p><strong>Version 3</strong></p>
@@ -3369,14 +3362,14 @@ return!"\t\n\x0B\f\r                　\u2028\u2029
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">play_dice_loop</span>(<span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 0</code></pre>
+<pre><code>[1] 2</code></pre>
 </div>
 <details open>
 <summary>The code for Problem 1-b</summary>
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">play_dice_loop</span>(<span class="dv">3000</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] -14</code></pre>
+<pre><code>[1] -168</code></pre>
 </div>
 <details open>
 <summary>The code for Problem 1-b</summary>
@@ -3384,14 +3377,14 @@ return!"\t\n\x0B\f\r                　\u2028\u2029
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">play_dice_vectorized</span>(<span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] -2</code></pre>
+<pre><code>[1] 4</code></pre>
 </div>
 <details open>
 <summary>The code for Problem 1-b</summary>
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">play_dice_vectorized</span>(<span class="dv">3000</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 30</code></pre>
+<pre><code>[1] -190</code></pre>
 </div>
 <details open>
 <summary>The code for Problem 1-b</summary>
@@ -3399,14 +3392,14 @@ return!"\t\n\x0B\f\r                　\u2028\u2029
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">play_dice_table</span>(<span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] -2</code></pre>
+<pre><code>[1] 6</code></pre>
 </div>
 <details open>
 <summary>The code for Problem 1-b</summary>
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">play_dice_table</span>(<span class="dv">3000</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] -18</code></pre>
+<pre><code>[1] -38</code></pre>
 </div>
 <details open>
 <summary>The code for Problem 1-b</summary>
@@ -3421,7 +3414,7 @@ return!"\t\n\x0B\f\r                　\u2028\u2029
 <div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">play_dice_apply</span>(<span class="dv">3000</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] -30</code></pre>
+<pre><code>[1] 208</code></pre>
 </div>
 </div>
 </section>
@@ -3490,11 +3483,11 @@ return!"\t\n\x0B\f\r                　\u2028\u2029
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Unit: microseconds
-                      expr  min    lq   mean median    uq   max neval
-       play_dice_loop(100) 21.7 22.80 24.325   23.2 24.05  62.7   100
- play_dice_vectorized(100) 18.5 19.30 22.029   19.8 21.30  90.1   100
-      play_dice_table(100) 40.5 42.60 48.624   43.7 46.70 178.1   100
-      play_dice_apply(100) 53.8 55.15 57.057   56.0 57.20  91.0   100</code></pre>
+                      expr  min    lq   mean median   uq   max neval
+       play_dice_loop(100) 23.2 24.30 26.185  24.70 26.0  60.3   100
+ play_dice_vectorized(100) 19.3 20.35 24.492  21.40 23.3 114.6   100
+      play_dice_table(100) 42.4 44.65 51.841  46.95 52.6 143.1   100
+      play_dice_apply(100) 56.6 58.20 60.942  59.30 62.2  92.4   100</code></pre>
 </div>
 <details open>
 <summary>The code for Problem 1-d</summary>
@@ -3502,11 +3495,11 @@ return!"\t\n\x0B\f\r                　\u2028\u2029
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Unit: microseconds
-                        expr    min      lq     mean median      uq     max
-       play_dice_loop(10000)  920.2  957.95  982.411  974.0  992.85  1235.8
- play_dice_vectorized(10000)  538.5  609.80  658.202  624.5  655.40  3505.1
-      play_dice_table(10000)  612.6  717.90  755.390  747.7  784.85  1006.8
-      play_dice_apply(10000) 4008.9 4136.40 4664.966 4258.9 4458.70 27134.7
+                        expr    min     lq     mean  median      uq    max
+       play_dice_loop(10000)  917.7  950.2  975.781  966.25  983.15 1118.7
+ play_dice_vectorized(10000)  529.1  610.8  628.842  619.60  636.50  959.6
+      play_dice_table(10000)  623.2  723.1  760.651  744.65  770.45 1267.4
+      play_dice_apply(10000) 3997.6 4086.8 4400.738 4193.20 4395.05 6331.0
  neval
    100
    100
@@ -3514,33 +3507,42 @@ return!"\t\n\x0B\f\r                　\u2028\u2029
    100</code></pre>
 </div>
 </div>
-<p>When we play the game for 100 times, the mean time consumption of <code>play_dice_loop</code>, <code>play_dice_vectorized</code>, <code>play_dice_table</code> and <code>play_dice_apply</code> are 24.325/22.029/48.624/57.057 ms, respectively. We notice that loop function and vectorized function take similar time. This is because when the workload is relatively low, the vectorization’s advantage over traditional loop is not outstanding. We also find that both loop function and vectorized function outperform table function and apply function. One possible explanation for this is that table function and apply function need extra time for initialization. The initialization time accounts for a significant part of time when the total time is small.</p>
-<p>In case of playing dices for 10000 times, <code>play_dice_loop</code>, <code>play_dice_vectorized</code>, <code>play_dice_table</code> and <code>play_dice_apply</code> take 982.411/658.202/755.39/4664.966 ms in means to finish. The vectorized function and table function have relatively low time consumption, since they both use vectorization to solve the problem and are high-performance. The reason why vectorized function is slightly faster than table function is that the table function does extra calculation which is not necessary in this case. We actually don’t need to know the exact counts to get the final result. We find that the loop function and apply function take considerable amount of time. This is because they try to do calculation in an element-by-element manner. Another noticeable thing is that, in our implementation, loop function is much faster than apply function. We owe this to the fact that at each step in apply’s implicit loop, it needs to call our anonymous R function, and the repeated function calls consume a lot of time.</p>
+<p>When we play the game for 100 times, the mean time consumption of <code>play_dice_loop</code>, <code>play_dice_vectorized</code>, <code>play_dice_table</code> and <code>play_dice_apply</code> are 26.185/24.492/51.841/60.942 ms, respectively. We notice that loop function and vectorized function take similar time. This is because when the workload is relatively low, the vectorization’s advantage over traditional loop is not outstanding. We also find that both loop function and vectorized function outperform table function and apply function. One possible explanation for this is that table function and apply function need extra time for initialization. The initialization time accounts for a significant part of time when the total time is small.</p>
+<p>In case of playing dices for 10000 times, <code>play_dice_loop</code>, <code>play_dice_vectorized</code>, <code>play_dice_table</code> and <code>play_dice_apply</code> take 975.781/628.842/760.651/4400.738 ms in means to finish. The vectorized function and table function have relatively low time consumption, since they both use vectorization to solve the problem and are high-performance. The reason why vectorized function is slightly faster than table function is that the table function does extra calculation which is not necessary in this case. We actually don’t need to know the exact counts to get the final result. We find that the loop function and apply function take considerable amount of time. This is because they try to do calculation in an element-by-element manner. Another noticeable thing is that, in our implementation, loop function is much faster than apply function. We owe this to the fact that at each step in apply’s implicit loop, it needs to call our anonymous R function, and the repeated function calls consume a lot of time.</p>
 </section>
 <section id="e" class="level3">
 <h3 class="anchored" data-anchor-id="e">e</h3>
 <div class="cell">
 <details open>
 <summary>The code for Problem 1-d</summary>
-<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100000</span></span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="co"># theta_hat = sum_{i=1}^{n} X_i / n</span></span>
-<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>results_list <span class="ot">&lt;-</span> <span class="fu">play_dice_vectorized</span>(n, <span class="at">return_all =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>theta_hat <span class="ot">&lt;-</span> results_list[[<span class="dv">1</span>]] <span class="sc">/</span> n</span>
-<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a><span class="co"># sigma = standard deviation of X_i</span></span>
-<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>sigma <span class="ot">&lt;-</span> <span class="fu">sd</span>(results_list[[<span class="dv">2</span>]])</span>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>per_roll_times <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>simu_results <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="st">&quot;double&quot;</span>, <span class="at">length =</span> n)</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n) {</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>  simu_results[i] <span class="ot">&lt;-</span> <span class="fu">play_dice_vectorized</span>(per_roll_times) <span class="sc">/</span> per_roll_times</span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>alpha <span class="ot">&lt;-</span> <span class="fl">0.05</span></span>
-<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>confi_bound_low <span class="ot">&lt;-</span> theta_hat <span class="sc">-</span> sigma <span class="sc">/</span> <span class="fu">sqrt</span>(n) <span class="sc">*</span> <span class="fu">qt</span>(<span class="fl">1.0</span> <span class="sc">-</span> alpha <span class="sc">/</span> <span class="dv">2</span>, <span class="at">df =</span> n <span class="sc">-</span> <span class="dv">1</span>)</span>
-<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a>confi_bound_high <span class="ot">&lt;-</span> theta_hat <span class="sc">+</span> sigma <span class="sc">/</span> <span class="fu">sqrt</span>(n) <span class="sc">*</span> <span class="fu">qt</span>(<span class="fl">1.0</span> <span class="sc">-</span> alpha <span class="sc">/</span> <span class="dv">2</span>, <span class="at">df =</span> n <span class="sc">-</span> <span class="dv">1</span>)</span>
-<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Lower confidence bound: &quot;</span>, </span>
-<span id="cb29-16"><a href="#cb29-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(confi_bound_low, <span class="dv">3</span>),</span>
-<span id="cb29-17"><a href="#cb29-17" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;</span><span class="sc">\n</span><span class="st">Higher confidence bound:&quot;</span>, </span>
-<span id="cb29-18"><a href="#cb29-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(confi_bound_high, <span class="dv">3</span>),</span>
-<span id="cb29-19"><a href="#cb29-19" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;</span><span class="sc">\n</span><span class="st">(alpha=&quot;</span>, alpha, <span class="st">&quot;)&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a><span class="co"># theta_hat = sum_{i=1}^{n} X_i / n</span></span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>theta_hat <span class="ot">&lt;-</span> <span class="fu">sum</span>(simu_results) <span class="sc">/</span> n</span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a><span class="co"># sigma = standard deviation of X_i</span></span>
+<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a>sigma <span class="ot">&lt;-</span> <span class="fu">sd</span>(simu_results)</span>
+<span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-16"><a href="#cb29-16" aria-hidden="true" tabindex="-1"></a>alpha <span class="ot">&lt;-</span> <span class="fl">0.05</span></span>
+<span id="cb29-17"><a href="#cb29-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-18"><a href="#cb29-18" aria-hidden="true" tabindex="-1"></a>confi_bound_low <span class="ot">&lt;-</span> theta_hat <span class="sc">-</span> sigma <span class="sc">/</span> <span class="fu">sqrt</span>(n) <span class="sc">*</span> <span class="fu">qt</span>(<span class="fl">1.0</span> <span class="sc">-</span> alpha <span class="sc">/</span> <span class="dv">2</span>, <span class="at">df =</span> n <span class="sc">-</span> <span class="dv">1</span>)</span>
+<span id="cb29-19"><a href="#cb29-19" aria-hidden="true" tabindex="-1"></a>confi_bound_high <span class="ot">&lt;-</span> theta_hat <span class="sc">+</span> sigma <span class="sc">/</span> <span class="fu">sqrt</span>(n) <span class="sc">*</span> <span class="fu">qt</span>(<span class="fl">1.0</span> <span class="sc">-</span> alpha <span class="sc">/</span> <span class="dv">2</span>, <span class="at">df =</span> n <span class="sc">-</span> <span class="dv">1</span>)</span>
+<span id="cb29-20"><a href="#cb29-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-21"><a href="#cb29-21" aria-hidden="true" tabindex="-1"></a>confi_bound_low_round <span class="ot">&lt;-</span> <span class="fu">round</span>(confi_bound_low, <span class="dv">3</span>)</span>
+<span id="cb29-22"><a href="#cb29-22" aria-hidden="true" tabindex="-1"></a>confi_bound_high_round <span class="ot">&lt;-</span> <span class="fu">round</span>(confi_bound_high, <span class="dv">3</span>)</span>
+<span id="cb29-23"><a href="#cb29-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-24"><a href="#cb29-24" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Lower confidence bound: &quot;</span>, </span>
+<span id="cb29-25"><a href="#cb29-25" aria-hidden="true" tabindex="-1"></a>    confi_bound_low_round,</span>
+<span id="cb29-26"><a href="#cb29-26" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;</span><span class="sc">\n</span><span class="st">Higher confidence bound:&quot;</span>, </span>
+<span id="cb29-27"><a href="#cb29-27" aria-hidden="true" tabindex="-1"></a>    confi_bound_high_round,</span>
+<span id="cb29-28"><a href="#cb29-28" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;</span><span class="sc">\n</span><span class="st">(alpha=&quot;</span>, alpha, <span class="st">&quot;)&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Lower confidence bound:  -0.02 
@@ -3548,7 +3550,7 @@ Higher confidence bound: 0.008
 (alpha= 0.05 )</code></pre>
 </div>
 </div>
-<p>As shown in our Monte Carlo simulation, when we roll the dice for 100000 times and set <span class="math inline">\(\alpha\)</span> to be 0.05, we can get the confidence interval (-0.02, 0.008) which covers 0. Therefore, we can conclude that this is a fair game.</p>
+<p>As shown in our Monte Carlo simulation, when we roll the dice for <span class="math inline">\(1000 \times 100\)</span> times and set <span class="math inline">\(\alpha\)</span> to be 0.05, we can get the confidence interval (-0.02, 0.008) which covers 0. Therefore, we can conclude that this is a fair game.</p>
 <div class="cell">
 <details open>
 <summary>Clear environment</summary>
